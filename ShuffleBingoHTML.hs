@@ -10,9 +10,9 @@ import qualified Data.Char as Char
 import Control.Applicative
 import System.Environment
 import System.IO
-import System.IO (stdin, stderr, stdout)
 import System.Exit
 import Text.Printf
+import System.Posix.Time as Posix
 
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Archive.Tar.Entry as Tar
@@ -36,12 +36,15 @@ usage name                   =  unlines
  
 main                         =  do
   name                      <-  getProgName
-  go name
+  args                      <-  getArgs
+  time                      <-  floor . realToFrac <$> Posix.epochTime
+  if List.any (`elem` args) ["-h","-?","--help"]
+    then  hPutStrLn stdout (usage name) >> exitSuccess
+    else  go name args time
 
 
-go name                      =  do
-  parsed                    <-  digitize <$> getArgs
-  case parsed of
+go name args time            =  do
+  case digitize args of
     Left s                  ->  fail s
     Right count             ->  do
       choices               <-  Set.fromList . no_empty . Bytes.lines <$> b_in
@@ -51,7 +54,7 @@ go name                      =  do
           (Bytes.hPutStr stdout . tar (name_nums count))
             (render <$> block_out count choices)
  where
-  tar names contents         =  Tar.write (tars dir' names contents)
+  tar names contents         =  Tar.write (tars time dir' names contents)
   dir                        =  "shuffle-bingo-html-output"
   Right dir'                 =  Tar.toTarPath True "shuffle-bingo-html-output"
   name_nums how_many         =  name <$> [0..(how_many-1)]
@@ -102,7 +105,8 @@ render texts                 =  Bytes.unlines
   place_image                =  Bytes.pack "<!-- Place image here. -->"
 
 
-tars dir names contents      =  Tar.directoryEntry dir :
-  [ Tar.fileEntry name content | name <- names | content <- contents ]
-
+tars t dir names contents    =  t_set (Tar.directoryEntry dir) :
+  [ t_set (Tar.fileEntry name content) | name <- names | content <- contents ]
+ where
+  t_set entry                =  entry {Tar.entryTime =  t}
 
