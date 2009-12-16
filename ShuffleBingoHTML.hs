@@ -11,8 +11,9 @@ import Control.Applicative
 import System.Environment
 import System.IO
 import System.Exit
-import Text.Printf
+import qualified System.Random as Random
 import System.Posix.Time as Posix
+import Text.Printf
 
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Archive.Tar.Entry as Tar
@@ -48,11 +49,12 @@ go name args time            =  do
     Left s                  ->  fail s
     Right count             ->  do
       choices               <-  Set.fromList . no_empty . Bytes.lines <$> b_in
+      g                     <-  Random.getStdGen
       if Set.size choices < n
         then  fail "Not enough lines to choose from."
         else  do
           (Bytes.hPutStr stdout . tar (name_nums count))
-            (render <$> block_out count choices)
+            (render <$> block_out g count choices)
  where
   tar names contents         =  Tar.write (tars time dir' names contents)
   dir                        =  "shuffle-bingo-html-output"
@@ -78,12 +80,12 @@ go name args time            =  do
   digitize _                 =  Left "Wrong number of args."
 
 
-block_out                   ::  Word -> Set.Set t -> [[t]]
-block_out choose choices     =  (combinations choose . Set.toList) choices
+block_out                   ::  Random.StdGen -> Word -> Set.Set t -> [[t]]
+block_out g k choices        =  pick . List.nub <$> stepped
  where
-  combinations 0 _           =  [[]]
-  combinations _ []          =  []
-  combinations k (x:xs) = map (x:) (combinations (k-1) xs) ++ combinations k xs
+  stepped                    =  List.iterate (drop (fromIntegral k)) indices
+  indices                    =  Random.randomRs (0, Set.size choices-1) g
+  pick                       =  ((Set.toList choices !!) <$>)
 
 
 render texts                 =  Bytes.unlines
