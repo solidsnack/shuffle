@@ -1,16 +1,18 @@
 #!/usr/bin/env runhaskell
 
 
-import System.IO (stdin, stderr, stdout)
-import Control.Applicative
+import Data.Word
 import qualified Data.List as List
 import qualified Data.Set as Set
 import qualified Data.ByteString.Lazy as Bytes (hPutStr)
 import qualified Data.ByteString.Lazy.Char8 as Bytes
 import qualified Data.Char as Char
+import Control.Applicative
 import System.Environment
 import System.IO
+import System.IO (stdin, stderr, stdout)
 import System.Exit
+import Text.Printf
 
 import qualified Codec.Archive.Tar as Tar
 import qualified Codec.Archive.Tar.Entry as Tar
@@ -46,15 +48,17 @@ go name                      =  do
       if Set.size choices < n
         then  fail "Not enough lines to choose from."
         else  do
-          tar_out (name_nums choices) (render <$> block_out count choices)
+          (Bytes.hPutStr stdout . tar (name_nums count))
+            (render <$> block_out count choices)
  where
-  tar_out names              =  (Bytes.hPutStr . Tar.write . tars dir names)
-  Right dir                  =  toTarPath True "shuffle-bingo-html-output"
+  tar names contents         =  Tar.write (tars dir' names contents)
+  dir                        =  "shuffle-bingo-html-output"
+  Right dir'                 =  Tar.toTarPath True "shuffle-bingo-html-output"
   name_nums how_many         =  name <$> [0..(how_many-1)]
    where
     name num                 =  p
      where
-      Right p                =  toTarPath
+      Right p                =  Tar.toTarPath False
                                  (dir ++ "/" ++ printf (digits ++ ".html") num)
     digits                   =  "%0" ++ (show . length . show) how_many ++ "d"
   no_empty                   =  filter (not . Bytes.all Char.isSpace)
@@ -64,6 +68,7 @@ go name                      =  do
     hPutStrLn stderr (usage name)
     exitFailure
   b_in                       =  Bytes.hGetContents stdin
+  digitize                  ::  [String] -> Either String Word
   digitize [s]               =  case reads s of
     [(i,"")]                ->  if i > 0 then Right i else Left "Non-positive."
     _                       ->  Left "Argument error."
@@ -73,7 +78,7 @@ go name                      =  do
 block_out choose choices     =  (combinations choose . Set.toList) choices
  where
   combinations 0 _           =  [ [] ]
-  combinations i a           =  [ y:ys | y:b  <-  tails a
+  combinations i a           =  [ y:ys | y:b  <-  List.tails a
                                        , ys   <-  combinations (i-1) b ]
 
 
@@ -82,4 +87,5 @@ render                       =  Bytes.unlines
 
 tars dir names contents      =  Tar.directoryEntry dir :
   [ Tar.fileEntry name content | name <- names | content <- contents ]
+
 

@@ -20,6 +20,7 @@ executable                      shuffle-bingo-html
   build-depends               : base >= 2 && < 4
                               , tar >= 0.3.1.0
                               , bytestring >= 0.9
+                              , containers
   extensions                  : NoMonomorphismRestriction
                                 ParallelListComp
 
