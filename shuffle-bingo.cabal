@@ -1,0 +1,25 @@
+name                          : shuffle-bingo
+version                       : 0.0.0
+license                       : BSD3
+license-file                  : LICENSE
+author                        : Jason Dusek
+maintainer                    : jason.dusek@gmail.com
+homepage                      : http://github.com/jsnx/JSONb/
+synopsis                      : Bingo shuffler for 5MOF.
+description                   :
+  Shuffles input into a bingo card for 5 Minutes of Fame.
+
+
+cabal-version                 : >= 1.6.0
+build-type                    : Simple
+extra-source-files            : README
+
+
+executable                      shuffle-bingo-html
+  main-is                     : ShuffleBingoHTML.hs
+  build-depends               : base >= 2 && < 4
+                              , tar >= 0.3.1.0
+                              , bytestring >= 0.9
+  extensions                  : NoMonomorphismRestriction
+                                ParallelListComp
+
