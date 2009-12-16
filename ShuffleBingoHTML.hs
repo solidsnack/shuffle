@@ -75,14 +75,31 @@ go name                      =  do
   digitize _                 =  Left "Wrong number of args."
 
 
+block_out                   ::  Word -> Set.Set t -> [[t]]
 block_out choose choices     =  (combinations choose . Set.toList) choices
  where
-  combinations 0 _           =  [ [] ]
-  combinations i a           =  [ y:ys | y:b  <-  List.tails a
-                                       , ys   <-  combinations (i-1) b ]
+  combinations 0 _           =  [[]]
+  combinations _ []          =  []
+  combinations k (x:xs) = map (x:) (combinations (k-1) xs) ++ combinations k xs
 
 
-render                       =  Bytes.unlines
+render texts                 =  Bytes.unlines
+  [ Bytes.pack "<table> <tbody>"
+  , tr (pick [0..4])
+  , tr (pick [5..9])
+  , tr (pick [10..11] ++ [place_image] ++ pick [12..13])
+  , tr (pick [14..18])
+  , tr (pick [19..24])
+  , Bytes.pack "</table> </tbody>"
+  ]
+ where
+  tr elems                   =  Bytes.unlines ([Bytes.pack "<tr>"] ++
+                                                 (td <$> elems)
+                                            ++ [Bytes.pack "</tr>"])
+  td text                    =  Bytes.unwords
+                                  [Bytes.pack "<td>", text, Bytes.pack "</td>"]
+  pick                       =  ((texts !!) <$>)
+  place_image                =  Bytes.pack "<!-- Place image here. -->"
 
 
 tars dir names contents      =  Tar.directoryEntry dir :
