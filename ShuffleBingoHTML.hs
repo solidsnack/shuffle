@@ -30,7 +30,7 @@ usage name                   =  unlines
       ++ show n ++ " unique lines, then puts them into"
  , " an HTML table that is 5x5 and has an empty square in the middle."
  , " You specify $count to get only that many files in the output. The"
- , " is a streaming TAR archive."
+ , " output is a streaming TAR archive."
  ]
 
  
