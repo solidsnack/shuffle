@@ -94,7 +94,7 @@ render texts                 =  Bytes.unlines
   , tr (pick [5..9])
   , tr (pick [10..11] ++ [place_image] ++ pick [12..13])
   , tr (pick [14..18])
-  , tr (pick [19..24])
+  , tr (pick [19..23])
   , Bytes.pack "</table> </tbody>"
   ]
  where
