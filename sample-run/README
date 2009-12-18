@@ -1,0 +1,7 @@
+
+  Generated with:
+
+ :; ../dist/build/shuffle-bingo-html/shuffle-bingo-html 10 < list | tar x
+
+  The image and style files have already been placed in the output directory.
+
