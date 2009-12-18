@@ -89,13 +89,25 @@ block_out g k choices        =  pick . List.nub <$> stepped
 
 
 render texts                 =  Bytes.unlines
-  [ Bytes.pack "<table> <tbody>"
+  [ Bytes.pack "<?xml version='1.0' encoding='UTF-8'?>"
+  , Bytes.pack "<!DOCTYPE html"
+  , Bytes.pack "  PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN'"
+  , Bytes.pack "  'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd' >"
+  , Bytes.pack "<html>"
+  , Bytes.pack "<head>"
+  , Bytes.pack "<title>title-it</title>"
+  , Bytes.pack "<link href='css.css' rel='stylesheet' type='text/css' />"
+  , Bytes.pack "</head>"
+  , Bytes.pack "<body> <table id='outer'> <tbody> <tr> <td>"
+  , Bytes.pack "<table id='shuffle-bingo'> <tbody>"
   , tr (pick [0..4])
   , tr (pick [5..9])
   , tr (pick [10..11] ++ [place_image] ++ pick [12..13])
   , tr (pick [14..18])
   , tr (pick [19..23])
-  , Bytes.pack "</table> </tbody>"
+  , Bytes.pack "</tbody> </table>"
+  , Bytes.pack "</td> </tr> </tbody> </table> </body>"
+  , Bytes.pack "</html>"
   ]
  where
   tr elems                   =  Bytes.unlines ([Bytes.pack "<tr>"] ++
@@ -104,7 +116,7 @@ render texts                 =  Bytes.unlines
   td text                    =  Bytes.unwords
                                   [Bytes.pack "<td>", text, Bytes.pack "</td>"]
   pick                       =  ((texts !!) <$>)
-  place_image                =  Bytes.pack "<!-- Place image here. -->"
+  place_image                =  Bytes.pack "<img src='png.png'></img>"
 
 
 tars t dir names contents    =  t_set (Tar.directoryEntry dir) :
